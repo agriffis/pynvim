@@ -13,7 +13,7 @@ connecting to and scripting Nvim processes through its msgpack-rpc API.
 
 Name:           python-neovim
 Version:        0.3.2
-Release:        3.20190402gitf513983%{?dist}
+Release:        4.20190403git5e57718%{?dist}
 
 License:        ASL 2.0
 Summary:        Python client to Neovim
@@ -103,7 +103,7 @@ popd
 %endif
 
 %changelog
-* Tue Apr 02 2019 Aron Griffis <aron@scampersand.com> - 0.3.2-3.20190402gitf513983
+* Wed Apr 03 2019 Aron Griffis <aron@scampersand.com> - 0.3.2-4.20190403git5e57718
 - Nightly build from git master
 
 * Wed Jan 02 2019 Andreas Schneider <asn@redhat.com> - 0.3.1-1
