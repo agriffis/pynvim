@@ -11,14 +11,14 @@ connecting to and scripting Nvim processes through its msgpack-rpc API.
 %bcond_without sphinx
 %endif
 
-Name:           python-neovim
-Version:        0.3.2
-Release:        4.20190403git5e57718%{?dist}
+Name:           {{{git_name name="python-neovim"}}}
+Version:        {{{git_version lead="$(git tag | sort --version-sort -r | head -n1)"}}}
+Release:        {{{git_revision 1}}}%{?dist}
 
 License:        ASL 2.0
 Summary:        Python client to Neovim
 URL:            https://github.com/neovim/pynvim
-Source0:        https://github.com/neovim/pynvim/archive/%{version}/pynvim-%{version}.tar.gz
+Source0:        {{{git_pack}}}
 
 BuildArch:      noarch
 BuildRequires:  python2-devel
@@ -69,7 +69,7 @@ This package contains documentation in HTML format.
 %endif
 
 %prep
-%autosetup -n python-neovim-%{version}
+{{{git_setup_macro}}}
 
 %build
 %py2_build
@@ -103,7 +103,7 @@ popd
 %endif
 
 %changelog
-* Wed Apr 03 2019 Aron Griffis <aron@scampersand.com> - 0.3.2-4.20190403git5e57718
+* {{{git_changelog_date}}} Aron Griffis <aron@scampersand.com> - {{{git_changelog_version}}}
 - Nightly build from git master
 
 * Wed Jan 02 2019 Andreas Schneider <asn@redhat.com> - 0.3.1-1
