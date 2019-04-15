@@ -1,14 +1,19 @@
+%{?python_enable_dependency_generator}
 %global desc Implements support for python plugins in Nvim. Also works as a library for\
 connecting to and scripting Nvim processes through its msgpack-rpc API.
-
-# For old Fedora versions
-%{!?python3_pkgversion:%global python3_pkgversion 3}
 
 # EPEL7 Sphinx is too old, disable doc building by default
 %if 0%{?el7}
 %bcond_with sphinx
 %else
 %bcond_without sphinx
+%endif
+
+# Enable py2 on Fedora before 31
+%if 0%{?fedora} < 31
+%bcond_without py2
+%else
+%bcond_with py2
 %endif
 
 Name:           {{{git_name name="python-neovim"}}}
@@ -21,9 +26,11 @@ URL:            https://github.com/neovim/pynvim
 Source0:        {{{git_pack}}}
 
 BuildArch:      noarch
+%if %{with py2}
 BuildRequires:  python2-devel
-BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python2-setuptools
+%endif
+BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
 %if %{with sphinx}
 BuildRequires:  python%{python3_pkgversion}-sphinx
@@ -32,6 +39,7 @@ BuildRequires:  python%{python3_pkgversion}-sphinx
 %description
 %{desc}
 
+%if %{with py2}
 %package -n python2-neovim
 Summary:        %{summary}
 %{?python_provide:%python_provide python2-neovim}
@@ -47,13 +55,16 @@ Requires:       python2-msgpack
 
 %description -n python2-neovim
 %{desc}
+%endif
 
 %package -n python%{python3_pkgversion}-neovim
 Summary:        %{summary}
 %{?python_provide:%python_provide python%{python3_pkgversion}-neovim}
 Requires:       neovim
+%if %{undefined __pythondist_requires}
 Requires:       python%{python3_pkgversion}-greenlet
 Requires:       python%{python3_pkgversion}-msgpack
+%endif
 
 %description -n python%{python3_pkgversion}-neovim
 %{desc}
@@ -72,7 +83,9 @@ This package contains documentation in HTML format.
 {{{git_setup_macro}}}
 
 %build
+%if %{with py2}
 %py2_build
+%endif
 %py3_build
 
 %if %{with sphinx}
@@ -83,13 +96,17 @@ popd
 %endif
 
 %install
+%if %{with py2}
 %py2_install
+%endif
 %py3_install
 
+%if %{with py2}
 %files -n python2-neovim
 %license LICENSE
 %doc README.md
 %{python2_sitelib}/*
+%endif
 
 %files -n python%{python3_pkgversion}-neovim
 %license LICENSE
@@ -104,10 +121,23 @@ popd
 
 %changelog
 * {{{git_changelog_date}}} Aron Griffis <aron@scampersand.com> - {{{git_changelog_version}}}
+- Re-enable python2 sub-packages on Fedora prior to 31
 - Nightly build from git master
+
+* Mon Mar 11 2019 Andreas Schneider <asn@redhat.com> - 0.3.2-1
+- Update to version 0.3.2
+
+* Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.3.1-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Wed Jan 02 2019 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 0.3.1-2
+- Enable python dependency generator
 
 * Wed Jan 02 2019 Andreas Schneider <asn@redhat.com> - 0.3.1-1
 - Update to version 0.3.1
+
+* Wed Sep 26 2018 Andreas Schneider <asn@redhat.com> - 0.2.6-4
+- resolves: #1632298 - Remove python2 sub-packages
 
 * Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.6-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
