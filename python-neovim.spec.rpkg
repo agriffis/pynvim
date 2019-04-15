@@ -34,6 +34,9 @@ BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
 %if %{with sphinx}
 BuildRequires:  python%{python3_pkgversion}-sphinx
+%if 0%{?fedora} > 30
+BuildRequires:  python%{python3_pkgversion}-sphinx_rtd_theme
+%endif
 %endif
 
 %description
