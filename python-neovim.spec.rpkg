@@ -95,7 +95,7 @@ This package contains documentation in HTML format.
 
 %if %{with sphinx}
 pushd docs
-make html
+make html SPHINXBUILD=sphinx-build-3
 rm -f _build/html/.buildinfo
 popd
 %endif
