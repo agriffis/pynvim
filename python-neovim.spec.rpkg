@@ -24,7 +24,6 @@ License:        ASL 2.0
 Summary:        Python client to Neovim
 URL:            https://github.com/neovim/pynvim
 Source0:        {{{git_pack}}}
-Patch0:         pynvim-0.3.2-dont-require-pytest-runner.patch
 
 BuildArch:      noarch
 %if %{with py2}
@@ -85,7 +84,6 @@ This package contains documentation in HTML format.
 
 %prep
 {{{git_setup_macro}}}
-%patch0 -p1
 
 %build
 %if %{with py2}
@@ -127,6 +125,7 @@ popd
 %changelog
 * {{{git_changelog_date}}} Aron Griffis <aron@scampersand.com> - {{{git_changelog_version}}}
 - Re-enable python2 sub-packages on Fedora prior to 31
+- Kill obsolete pynvim-0.3.2-dont-require-pytest-runner.patch
 - Nightly build from git master
 
 * Mon Mar 11 2019 Andreas Schneider <asn@redhat.com> - 0.3.2-1
