@@ -5,6 +5,11 @@ eval "function _git_version() $(type git_version | sed 1,2d)"
 function git_version {
     declare v="$(_git_version "$@")"
 
+    echo "GIT BRANCH -av" >&2
+    git branch -av >&2
+
+    exit 1
+
     if [[ $v =~ \.git\.[0-9]+\.[0-9a-f]+$ ]]; then
         # The git revision tacked on the end is from our branch. Replace it with
         # the last git revision from master, so that builds correspond with
