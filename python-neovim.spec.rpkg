@@ -26,6 +26,7 @@ URL:            https://github.com/neovim/pynvim
 Source0:        {{{git_pack}}}
 
 BuildArch:      noarch
+BuildRequires:  make
 %if %{with py2}
 BuildRequires:  python2-devel
 BuildRequires:  python2-setuptools
