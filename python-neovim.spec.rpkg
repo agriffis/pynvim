@@ -23,7 +23,7 @@ Release:        {{{git_revision 1}}}%{?dist}
 License:        ASL 2.0
 Summary:        Python client to Neovim
 URL:            https://github.com/neovim/pynvim
-Source0:        {{{git_pack}}}
+Source0:        {{{git_repo_pack}}}
 
 BuildArch:      noarch
 BuildRequires:  make
@@ -84,7 +84,7 @@ This package contains documentation in HTML format.
 %endif
 
 %prep
-{{{git_setup_macro}}}
+{{{git_setup_macro path="$GIT_ROOT"}}}
 
 %build
 %if %{with py2}
