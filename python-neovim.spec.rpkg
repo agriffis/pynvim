@@ -1,19 +1,18 @@
+%if 0%{?fedora}
 %{?python_enable_dependency_generator}
+%endif
+
 %global desc Implements support for python plugins in Nvim. Also works as a library for\
 connecting to and scripting Nvim processes through its msgpack-rpc API.
+
+# Disable check by default, be nice to COPR servers
+%bcond_with check
 
 # EPEL7 Sphinx is too old, disable doc building by default
 %if 0%{?el7}
 %bcond_with sphinx
 %else
 %bcond_without sphinx
-%endif
-
-# Enable py2 on Fedora before 31
-%if 0%{?fedora} < 31
-%bcond_without py2
-%else
-%bcond_with py2
 %endif
 
 Name:           {{{git_name name="python-neovim"}}}
@@ -27,35 +26,35 @@ Source0:        {{{git_repo_pack}}}
 
 BuildArch:      noarch
 BuildRequires:  make
-%if %{with py2}
-BuildRequires:  python2-devel
-BuildRequires:  python2-setuptools
-%endif
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
+%if %{with check}
+BuildRequires:  neovim
+BuildRequires:  python3dist(pytest)
+BuildRequires:  python3dist(greenlet)
+BuildRequires:  python3dist(msgpack)
+%endif
+
+%if 0%{?el7}
+BuildRequires:  python-devel
+BuildRequires:  python-setuptools
+%endif
+
 %if %{with sphinx}
 BuildRequires:  python%{python3_pkgversion}-sphinx
-%if 0%{?fedora} > 30
 BuildRequires:  python%{python3_pkgversion}-sphinx_rtd_theme
-%endif
 %endif
 
 %description
 %{desc}
 
-%if %{with py2}
+%if 0%{?el7}
 %package -n python2-neovim
 Summary:        %{summary}
 %{?python_provide:%python_provide python2-neovim}
 Requires:       neovim
-%if 0%{?el7}
 Requires:       python-greenlet
 Requires:       python-trollius
-%else
-Requires:       python2-greenlet
-Requires:       python2-trollius
-%endif
-Requires:       python2-msgpack
 
 %description -n python2-neovim
 %{desc}
@@ -87,25 +86,31 @@ This package contains documentation in HTML format.
 {{{git_setup_macro path="$GIT_ROOT"}}}
 
 %build
-%if %{with py2}
+%if 0%{?el7}
 %py2_build
 %endif
 %py3_build
 
 %if %{with sphinx}
 pushd docs
-make html SPHINXBUILD=sphinx-build-3
+make html
 rm -f _build/html/.buildinfo
 popd
 %endif
 
 %install
-%if %{with py2}
+%if 0%{?el7}
 %py2_install
 %endif
 %py3_install
 
-%if %{with py2}
+%check
+%py3_check_import pynvim
+%if %{with check}
+%pytest
+%endif
+
+%if 0%{?el7}
 %files -n python2-neovim
 %license LICENSE
 %doc README.md
@@ -125,9 +130,67 @@ popd
 
 %changelog
 * {{{git_changelog_date}}} Aron Griffis <aron@scampersand.com> - {{{git_changelog_version}}}
-- Re-enable python2 sub-packages on Fedora prior to 31
-- Kill obsolete pynvim-0.3.2-dont-require-pytest-runner.patch
 - Nightly build from git master
+- Disable tests during rpm build
+
+* Fri Jul 22 2022 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.3-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
+
+* Mon Jun 13 2022 Python Maint <python-maint@redhat.com> - 0.4.3-6
+- Rebuilt for Python 3.11
+
+* Wed Mar 23 2022 Michel Alexandre Salim <salimma@fedoraproject.org> - 0.4.3-5
+- Enable tests
+- Drop python-pytest-runner dependency
+
+* Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.3-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
+
+* Fri Jul 23 2021 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.3-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
+
+* Fri Jun 04 2021 Python Maint <python-maint@redhat.com> - 0.4.3-2
+- Rebuilt for Python 3.10
+
+* Mon Apr 19 2021 Andreas Schneider <asn@redhat.com> - 0.4.3-1
+- resolves: #1773192 - Update to version 0.4.3
+  o https://github.com/neovim/pynvim/releases/tag/0.4.3
+
+* Mon Mar 15 2021 Andreas Schneider <asn@redhat.com> - 0.4.2-1
+- Update to version 0.4.2
+  o https://github.com/neovim/pynvim/releases/tag/0.4.2
+
+* Wed Jan 27 2021 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.1-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
+
+* Wed Jul 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.1-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
+
+* Tue May 26 2020 Miro Hrončok <mhroncok@redhat.com> - 0.4.1-3
+- Rebuilt for Python 3.9
+
+* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Sun Nov 17 2019 Andreas Schneider <asn@redhat.com> - 0.4.1-1
+- Update to version 0.4.1
+  * https://github.com/neovim/pynvim/releases/tag/0.4.1
+
+* Sun Nov 17 2019 Andreas Schneider <asn@redhat.com> - 0.4.0-1
+- Update to version 0.4.0
+
+* Thu Oct 03 2019 Miro Hrončok <mhroncok@redhat.com> - 0.3.2-5
+- Rebuilt for Python 3.8.0rc1 (#1748018)
+
+* Mon Aug 19 2019 Miro Hrončok <mhroncok@redhat.com> - 0.3.2-4
+- Rebuilt for Python 3.8
+
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.3.2-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Thu Jun 20 2019 Michel Alexandre Salim <salimma@fedoraproject.org> - 0.3.2-2
+- Merge spec with EPEL7 branch
+- Fix missing Sphinx theme for F31 #1716511
 
 * Mon Mar 11 2019 Andreas Schneider <asn@redhat.com> - 0.3.2-1
 - Update to version 0.3.2
