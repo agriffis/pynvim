@@ -28,11 +28,11 @@ BuildArch:      noarch
 BuildRequires:  make
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python3dist(greenlet)
+BuildRequires:  python3dist(msgpack)
 %if %{with check}
 BuildRequires:  neovim
 BuildRequires:  python3dist(pytest)
-BuildRequires:  python3dist(greenlet)
-BuildRequires:  python3dist(msgpack)
 %endif
 
 %if 0%{?el7}
@@ -66,8 +66,8 @@ Summary:        %{summary}
 Requires:       neovim
 %if %{undefined __pythondist_requires}
 Requires:       python%{python3_pkgversion}-greenlet
-%endif
 Requires:       python%{python3_pkgversion}-msgpack
+%endif
 
 %description -n python%{python3_pkgversion}-neovim
 %{desc}
