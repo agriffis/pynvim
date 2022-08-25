@@ -66,8 +66,8 @@ Summary:        %{summary}
 Requires:       neovim
 %if %{undefined __pythondist_requires}
 Requires:       python%{python3_pkgversion}-greenlet
-Requires:       python%{python3_pkgversion}-msgpack
 %endif
+Requires:       python%{python3_pkgversion}-msgpack
 
 %description -n python%{python3_pkgversion}-neovim
 %{desc}
