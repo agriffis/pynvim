@@ -4,10 +4,13 @@ neovim/ui/screen.c
 neovim/ui/screen.so
 build/
 dist/
+venv
 *.pyc
 .cache
 .eggs
 .tox
+.pytest_cache
+.coverage*
 
 # Sphinx documentation
 docs/_build/

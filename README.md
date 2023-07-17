@@ -1,8 +1,7 @@
 Pynvim: Python client to [Neovim](https://github.com/neovim/neovim)
 ===================================================================
 
-[![Build Status](https://travis-ci.org/neovim/pynvim.svg?branch=master)](https://travis-ci.org/neovim/pynvim)
-[![Documentation Status](https://readthedocs.org/projects/pynvim/badge/?version=latest)](https://pynvim.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/pynvim/badge/?version=latest)](https://readthedocs.org/projects/pynvim/builds/)
 [![Code coverage](https://codecov.io/gh/neovim/pynvim/branch/master/graph/badge.svg)](https://codecov.io/gh/neovim/pynvim)
 
 Pynvim implements support for python plugins in Nvim. It also works as a library for
@@ -11,36 +10,26 @@ connecting to and scripting Nvim processes through its msgpack-rpc API.
 Install
 -------
 
-Supports python 2.7, and 3.4 or later.
+Supports python 3.10 or later.
 
-```sh
-pip2 install pynvim
-pip3 install pynvim
-```
+    pip3 install pynvim
 
-If you only use one of python2 or python3, it is enough to install that
-version. You can install the package without being root by adding the `--user`
-flag.
-
+You can install the package without being root by adding the `--user` flag.
 Anytime you upgrade Neovim, make sure to upgrade pynvim as well:
-```sh
-pip2 install --upgrade pynvim
-pip3 install --upgrade pynvim
-```
 
-Alternatively, the master version could be installed by executing the following
-in the root of this repository:
-```sh
-pip2 install .
-pip3 install .
-```
+    pip3 install --upgrade pynvim
+
+Alternatively, you can install the development version by cloning this
+repository and executing the following at the top level:
+
+    pip3 install .
 
 Python Plugin API
 -----------------
 
 Pynvim supports python _remote plugins_ (via the language-agnostic Nvim rplugin
-interface), as well as _Vim plugins_ (via the `:python[3]` interface). Thus when
-pynvim is installed Neovim will report support for the `+python[3]` Vim feature.
+interface), as well as _Vim plugins_ (via the `:python3` interface). Thus when
+pynvim is installed Neovim will report support for the `+python3` Vim feature.
 
 The rplugin interface allows plugins to handle vimL function calls as well as
 defining commands and autocommands, and such plugins can operate asynchronously
@@ -61,8 +50,8 @@ Development
 
 Use (and activate) a local virtualenv.
 
-    python3 -m venv env36
-    source env36/bin/activate
+    python3 -m virtualenv venv
+    source venv/bin/activate
 
 If you change the code, you must reinstall for the changes to take effect:
 
@@ -129,8 +118,8 @@ Release
    - bump the version in `pynvim/util.py` and `setup.py` (3 places in total)
 2. Make a release on GitHub with the same commit/version tag and copy the message.
 3. Run `scripts/disable_log_statements.sh`
-4. Run `python setup.py sdist`
+4. Run `python -m build`
     - diff the release tarball `dist/pynvim-x.y.z.tar.gz` against the previous one.
-5. Run `twine upload -r pypi dist/pynvim-x.y.z.tar.gz`
+5. Run `twine upload -r pypi dist/*`
     - Assumes you have a pypi account with permissions.
 6. Run `scripts/enable_log_statements.sh` or `git reset --hard` to restore the working dir.

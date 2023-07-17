@@ -1,5 +1,5 @@
+# type: ignore
 """Implements a Nvim host for python plugins."""
-import imp
 import inspect
 import logging
 import os
@@ -7,20 +7,41 @@ import os.path
 import re
 from functools import partial
 from traceback import format_exc
+from typing import Any, Sequence
 
-from pynvim.api import decode_if_bytes, walk
-from pynvim.compat import IS_PYTHON3, find_module
+from pynvim.api import Nvim, decode_if_bytes, walk
 from pynvim.msgpack_rpc import ErrorResponse
 from pynvim.plugin import script_host
 from pynvim.util import format_exc_skip, get_client_info
 
-__all__ = ('Host')
+__all__ = ('Host',)
 
 logger = logging.getLogger(__name__)
 error, debug, info, warn = (logger.error, logger.debug, logger.info,
                             logger.warning,)
 
 host_method_spec = {"poll": {}, "specs": {"nargs": 1}, "shutdown": {}}
+
+
+def handle_import(directory, name):
+    """Import a python file given a known location.
+
+    Currently works on both python2 or 3.
+    """
+    try:  # Python3
+        from importlib.util import module_from_spec, spec_from_file_location
+    except ImportError:  # Python2.7
+        import imp
+        from pynvim.compat import find_module
+        file, pathname, descr = find_module(name, [directory])
+        module = imp.load_module(name, file, pathname, descr)
+        return module
+    else:
+        spec = spec_from_file_location(name, location=directory)
+        if spec is not None:
+            return module_from_spec(spec)
+        else:
+            raise ImportError
 
 
 class Host(object):
@@ -31,7 +52,7 @@ class Host(object):
     requests/notifications to the appropriate handlers.
     """
 
-    def __init__(self, nvim):
+    def __init__(self, nvim: Nvim):
         """Set handlers for plugin_load/plugin_unload."""
         self.nvim = nvim
         self._specs = {}
@@ -46,14 +67,13 @@ class Host(object):
             'shutdown': self.shutdown
         }
 
-        # Decode per default for Python3
-        self._decode_default = IS_PYTHON3
+        self._decode_default = True
 
-    def _on_async_err(self, msg):
+    def _on_async_err(self, msg: str) -> None:
         # uncaught python exception
         self.nvim.err_write(msg, async_=True)
 
-    def _on_error_event(self, kind, msg):
+    def _on_error_event(self, kind: Any, msg: str) -> None:
         # error from nvim due to async request
         # like nvim.command(..., async_=True)
         errmsg = "{}: Async request caused an error:\n{}\n".format(
@@ -68,7 +88,7 @@ class Host(object):
                            lambda: self._load(plugins),
                            err_cb=self._on_async_err)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Shutdown the host."""
         self._unload()
         self.nvim.stop_loop()
@@ -110,10 +130,9 @@ class Host(object):
                        .format(name, args, format_exc_skip(1)))
                 self._on_async_err(msg + "\n")
 
-    def _on_request(self, name, args):
+    def _on_request(self, name: str, args: Sequence[Any]) -> None:
         """Handle a msgpack-rpc request."""
-        if IS_PYTHON3:
-            name = decode_if_bytes(name)
+        name = decode_if_bytes(name)
         handler = self._request_handlers.get(name, None)
         if not handler:
             msg = self._missing_handler_error(name, 'request')
@@ -125,10 +144,9 @@ class Host(object):
         debug("request handler for '%s %s' returns: %s", name, args, rv)
         return rv
 
-    def _on_notification(self, name, args):
+    def _on_notification(self, name: str, args: Sequence[Any]) -> None:
         """Handle a msgpack-rpc notification."""
-        if IS_PYTHON3:
-            name = decode_if_bytes(name)
+        name = decode_if_bytes(name)
         handler = self._notification_handlers.get(name, None)
         if not handler:
             msg = self._missing_handler_error(name, 'notification')
@@ -148,7 +166,7 @@ class Host(object):
                 msg = msg + "\n" + loader_error
         return msg
 
-    def _load(self, plugins):
+    def _load(self, plugins: Sequence[str]) -> None:
         has_script = False
         for path in plugins:
             err = None
@@ -161,8 +179,10 @@ class Host(object):
                     has_script = True
                 else:
                     directory, name = os.path.split(os.path.splitext(path)[0])
-                    file, pathname, descr = find_module(name, [directory])
-                    module = imp.load_module(name, file, pathname, descr)
+                    try:
+                        module = handle_import(directory, name)
+                    except ImportError:
+                        return
                 handlers = []
                 self._discover_classes(module, handlers, path)
                 self._discover_functions(module, handlers, path, False)
@@ -182,7 +202,7 @@ class Host(object):
         self.name = info[0]
         self.nvim.api.set_client_info(*info, async_=True)
 
-    def _unload(self):
+    def _unload(self) -> None:
         for path, plugin in self._loaded.items():
             handlers = plugin['handlers']
             for handler in handlers:
@@ -232,12 +252,12 @@ class Host(object):
             if sync:
                 if method in self._request_handlers:
                     raise Exception(('Request handler for "{}" is '
-                                    + 'already registered').format(method))
+                                     + 'already registered').format(method))
                 self._request_handlers[method] = fn_wrapped
             else:
                 if method in self._notification_handlers:
                     raise Exception(('Notification handler for "{}" is '
-                                    + 'already registered').format(method))
+                                     + 'already registered').format(method))
                 self._notification_handlers[method] = fn_wrapped
             if hasattr(fn, '_nvim_rpc_spec'):
                 specs.append(fn._nvim_rpc_spec)
@@ -253,8 +273,7 @@ class Host(object):
                 setattr(fn2, attr, getattr(fn, attr))
 
     def _on_specs_request(self, path):
-        if IS_PYTHON3:
-            path = decode_if_bytes(path)
+        path = decode_if_bytes(path)
         if path in self._load_errors:
             self.nvim.out_write(self._load_errors[path] + '\n')
         return self._specs.get(path, 0)
