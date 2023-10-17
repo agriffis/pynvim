@@ -7,13 +7,7 @@ connecting to and scripting Nvim processes through its msgpack-rpc API.
 
 # Disable check by default, be nice to COPR servers
 %bcond_with check
-
-# EPEL7 Sphinx is too old, disable doc building by default
-%if 0%{?el7}
-%bcond_with sphinx
-%else
 %bcond_without sphinx
-%endif
 
 Name:           {{{git_name name="python-neovim"}}}
 Version:        {{{git_version lead="$(git tag | sort --version-sort -r | head -n1)"}}}
@@ -26,18 +20,14 @@ Source0:        {{{git_repo_pack}}}
 
 BuildArch:      noarch
 BuildRequires:  make
-BuildRequires:  python%{python3_pkgversion}-devel
-BuildRequires:  python%{python3_pkgversion}-setuptools
-BuildRequires:  python3dist(greenlet)
-BuildRequires:  python3dist(msgpack)
+BuildRequires:  python3-devel
 %if %{with check}
 BuildRequires:  neovim
 BuildRequires:  python3dist(pytest)
-%endif
-
-%if 0%{?el7}
-BuildRequires:  python-devel
-BuildRequires:  python-setuptools
+BuildRequires:  python3dist(pytest-timeout)
+BuildRequires:  python3dist(pytest-asyncio)
+BuildRequires:  python3dist(greenlet)
+BuildRequires:  python3dist(msgpack)
 %endif
 
 %if %{with sphinx}
@@ -47,18 +37,6 @@ BuildRequires:  python%{python3_pkgversion}-sphinx_rtd_theme
 
 %description
 %{desc}
-
-%if 0%{?el7}
-%package -n python2-neovim
-Summary:        %{summary}
-%{?python_provide:%python_provide python2-neovim}
-Requires:       neovim
-Requires:       python-greenlet
-Requires:       python-trollius
-
-%description -n python2-neovim
-%{desc}
-%endif
 
 %package -n python%{python3_pkgversion}-neovim
 Summary:        %{summary}
@@ -85,11 +63,11 @@ This package contains documentation in HTML format.
 %prep
 {{{git_setup_macro path="$GIT_ROOT"}}}
 
+%generate_buildrequires
+%pyproject_buildrequires -t
+
 %build
-%if 0%{?el7}
-%py2_build
-%endif
-%py3_build
+%pyproject_wheel
 
 %if %{with sphinx}
 pushd docs
@@ -99,23 +77,13 @@ popd
 %endif
 
 %install
-%if 0%{?el7}
-%py2_install
-%endif
-%py3_install
+%pyproject_install
 
 %check
-%py3_check_import pynvim
-%if %{with check}
-%pytest
-%endif
-
-%if 0%{?el7}
-%files -n python2-neovim
-%license LICENSE
-%doc README.md
-%{python2_sitelib}/*
-%endif
+# There is still something wrong with tests, but they also fail
+# upstream. The question is when to deprecate the module as neovim
+# is fully committed to lua now.
+%tox
 
 %files -n python%{python3_pkgversion}-neovim
 %license LICENSE
@@ -132,6 +100,21 @@ popd
 * {{{git_changelog_date}}} Aron Griffis <aron@scampersand.com> - {{{git_changelog_version}}}
 - Nightly build from git master
 - Disable tests during rpm build
+
+* Wed Sep 27 2023 Andreas Schneider <asn@redhat.com> - 0.4.3-12
+- Fix running tests with Python 3.12
+
+* Mon Aug 28 2023 Andreas Schneider <asn@redhat.com> - 0.4.3-11
+- Fix build on Fedora with Python 3.12
+
+* Fri Jul 21 2023 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.3-10
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+
+* Thu Jun 15 2023 Python Maint <python-maint@redhat.com> - 0.4.3-9
+- Rebuilt for Python 3.12
+
+* Fri Jan 20 2023 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.3-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_38_Mass_Rebuild
 
 * Fri Jul 22 2022 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.3-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
