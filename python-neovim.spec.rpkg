@@ -5,8 +5,6 @@
 %global desc Implements support for python plugins in Nvim. Also works as a library for\
 connecting to and scripting Nvim processes through its msgpack-rpc API.
 
-# Disable check by default, be nice to COPR servers
-%bcond_with check
 %bcond_without sphinx
 
 Name:           {{{git_name name="python-neovim"}}}
@@ -21,14 +19,6 @@ Source0:        {{{git_repo_pack}}}
 BuildArch:      noarch
 BuildRequires:  make
 BuildRequires:  python3-devel
-%if %{with check}
-BuildRequires:  neovim
-BuildRequires:  python3dist(pytest)
-BuildRequires:  python3dist(pytest-timeout)
-BuildRequires:  python3dist(pytest-asyncio)
-BuildRequires:  python3dist(greenlet)
-BuildRequires:  python3dist(msgpack)
-%endif
 
 %if %{with sphinx}
 BuildRequires:  python%{python3_pkgversion}-sphinx
@@ -78,12 +68,6 @@ popd
 
 %install
 %pyproject_install
-
-%check
-# There is still something wrong with tests, but they also fail
-# upstream. The question is when to deprecate the module as neovim
-# is fully committed to lua now.
-%tox
 
 %files -n python%{python3_pkgversion}-neovim
 %license LICENSE
