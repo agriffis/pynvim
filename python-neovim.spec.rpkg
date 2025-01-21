@@ -8,8 +8,8 @@ connecting to and scripting Nvim processes through its msgpack-rpc API.
 %bcond_without sphinx
 
 Name:           {{{git_name name="python-neovim"}}}
-Version:        {{{git_version lead="$(git tag | sort --version-sort -r | head -n1)"}}}
-Release:        {{{git_revision 1}}}%{?dist}
+Version:        {{{git_version}}}
+Release:        {{{git_revision}}}%{?dist}
 
 License:        ASL 2.0
 Summary:        Python client to Neovim

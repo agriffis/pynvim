@@ -3,36 +3,51 @@
 # backward compat since cached function went away
 # https://pagure.io/rpkg-util/c/bb62554c62fd52224709e861c2353a5c15b50220?branch=master
 function cached {
-    declare v=${OUTPUT[$1]}
-    [[ -n $v ]] && echo -n "$v"
+  declare v=${OUTPUT[$1]}
+  [[ -n $v ]] && echo -n "$v"
 }
 
-eval "function _git_version() $(type git_version | sed 1,2d)"
-
 function git_version {
-    cached git_version && return
-    declare v="$(_git_version "$@")"
-    if [[ $v =~ \.git\.[0-9]+\.[0-9a-f]+$ ]]; then
-        # The git revision tacked on the end is from our branch. Replace it with
-        # the last git revision from master, so that builds correspond with
-        # upstream commits.
-        v=${v%.*}.$(git rev-parse --short origin/master)
-    fi
-    output "$v"
+  cached git_version && return
+
+  # 0.5.2-1080-971e0ca90
+  declare describe tag commits hash
+  describe=$(git describe --long master)
+  read tag commits hash <<<"${describe//-/ }"
+  hash=${hash#g} # git prepends g to indicate git
+  [[ $tag =~ ^[0-9]+[.][0-9]+[.][0-9]+ && $commits =~ ^[0-9]+$ && -n $hash ]] || abort "failed git describe"
+
+  output "$tag^$commits.$hash"
 }
 
 function git_revision {
-    output "$*"
+  cached git_revision && return
+
+  # find last merge
+  declare last_merge rest
+  read last_merge rest <<<"$(git log --merges --oneline -n1)"
+  [[ -n $last_merge ]] || abort "failed to find last merge"
+
+  # count commits since last merge, might be zero
+  declare count
+  count=$(git log --oneline HEAD "^$last_merge" | wc -l)
+
+  output "$((count + 1))"
 }
 
 function git_changelog_date {
-    cached git_changelog_date && return
-    output "$(date +'%a %b %d %Y')"
+  cached git_changelog_date && return
+  output "$(date +'%a %b %d %Y')"
 }
 
 function git_changelog_version {
-    cached git_changelog_version && return
-    git_version &>/dev/null # cache
-    git_revision &>/dev/null # cache
-    output "$(git_version)-$(git_revision)"
+  cached git_changelog_version && return
+  git_version &>/dev/null # cache
+  git_revision &>/dev/null # cache
+  output "$(git_version)-$(git_revision)"
+}
+
+function abort {
+  echo "ABORT: $*" >&2
+  exit 1
 }
