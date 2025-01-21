@@ -9,7 +9,9 @@ __PATH__ = os.path.abspath(os.path.dirname(__file__))
 from setuptools import setup
 
 install_requires = [
-    'msgpack>=0.5.0',
+    'msgpack>=1.0.0',
+    'greenlet>=3.0; python_implementation != "PyPy"',
+    'typing-extensions>=4.5; python_version < "3.12"',
 ]
 
 needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
@@ -31,13 +33,6 @@ extras_require = {
     'test': tests_require,
     'docs': docs_require,
 }
-
-if platform.python_implementation() != 'PyPy':
-    # pypy already includes an implementation of the greenlet module
-    install_requires.append('greenlet')
-
-if sys.version_info < (3, 12):
-    install_requires.append('typing-extensions>=4.5')
 
 
 # __version__: see pynvim/_version.py
